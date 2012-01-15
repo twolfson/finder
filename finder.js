@@ -9,7 +9,9 @@ function getFilesFromDirectory(basePath, dirName, tree) {
       keys,
       key,
       i,
-      len;
+      len,
+      currentPath,
+      pathStats;
 
   // TODO: Use async lib and don't do sync
   // If the tree is not a tree/object
@@ -22,7 +24,17 @@ function getFilesFromDirectory(basePath, dirName, tree) {
 
         for (i = 0, len = keys.length; i < len; i++) {
           key = keys[i];
-          files.push( path.join(dirPath, key) );
+          currentPath = path.join(dirPath, key);
+          pathStats = fs.statSync(currentPath);
+          
+          // If the item is a directory
+          if (pathStats.isDirectory()) {
+            // TODO: Recurse its files
+            // getFilesFromDirectory(currentPath, 
+          } else {
+            // Otherwise push on the new item
+            files.push( currentPath );
+          }
         }
       }
     }
@@ -47,6 +59,10 @@ function FileFinder(conf) {
   this.scan();
 }
 FileFinder.prototype = {
+  'open': function (name) {
+    var exec = require('child_process').exec;
+    exec('start ' + this.humanMap[name], function () {});
+  },
   'query': function (query) {
     // Grab the keys for quick looping
     var humanMap = this.humanMap,
@@ -55,7 +71,8 @@ FileFinder.prototype = {
     // Collect all items that match
         regexpArr = query.split(/\s+/),
         j,
-        matches = [];
+        matches = [],
+        matchesAll;
     for (i = 0, len = humanNames.length; i < len; i++) {
       humanName = humanNames[i];
       matchesAll = true;
@@ -100,7 +117,7 @@ FileFinder.prototype = {
       // Add the file name to the map
       humanToFullFilenameMap[humanName] = filename;
     }
-    
+
     return this;
   }
 };
@@ -141,8 +158,7 @@ function startSearch() {
             // Open it
             item = matches[num];
             console.log('Opening: ' + item);
-            var exec = require('child_process').exec;
-            exec('start ' + humanToFullFilenameMap[item], function () {});
+            fileFinder.open(item);
           }
         } else {
         // Otherwise, if there was a word in there so we are assuming it was 'rescan'
