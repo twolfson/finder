@@ -165,8 +165,20 @@ function startSearch() {
     if (len === 0) {
       console.log('No results found for: ' + query);
       startSearch();
+    } else if (len === 1) {
+      var item = matches[0];
+    // If there is one, skip to go
+      console.log('Opening: ' + item);
+      fileFinder.open(item);
+
+      // Begin the search again
+      startSearch();
     } else {
     // Otherwise, list options
+      console.log('');
+      console.log('----------------');
+      console.log('Search Results');
+      console.log('----------------');
       for (i = 0; i < len; i++) {
         console.log(i + ': ' + matches[i]);
       }
@@ -176,10 +188,10 @@ function startSearch() {
         var num = +numStr,
             item;
 
-        // If the number is not NaN
-        if (num === num) {
+        // If the number is not NaN and we were not given an empty string
+        if (num === num && numStr !== '') {
           // and if it is in our result set
-          if (numStr !== '' && num >= 0 && num < len) {
+          if (num >= 0 && num < len) {
             // Open it
             item = matches[num];
             console.log('Opening: ' + item);
