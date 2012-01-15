@@ -1,6 +1,6 @@
 var path = require('path'),
     fs = require('fs');
-    
+
 // Prep for recursive dive of the directories
 function getFilesFromDirectory(basePath, dirName, tree) {
   var dirPath = path.join(basePath, dirName),
@@ -26,11 +26,10 @@ function getFilesFromDirectory(basePath, dirName, tree) {
           key = keys[i];
           currentPath = path.join(dirPath, key);
           pathStats = fs.statSync(currentPath);
-          
+
           // If the item is a directory
           if (pathStats.isDirectory()) {
-            // TODO: Recurse its files
-            // getFilesFromDirectory(currentPath, 
+            files = files.concat(getFilesFromDirectory(dirPath, key, true));
           } else {
             // Otherwise push on the new item
             files.push( currentPath );
@@ -49,12 +48,12 @@ function getFilesFromDirectory(basePath, dirName, tree) {
 
   return files;
 }
-    
+
 function FileFinder(conf) {
   this.baseDir = conf.baseDir || process.cwd();
   this.directories = conf.directories || {};
   this.humanMap = {};
-  
+
   // Scan for files
   this.scan();
 }
@@ -67,27 +66,53 @@ FileFinder.prototype = {
     // Grab the keys for quick looping
     var humanMap = this.humanMap,
         humanNames = Object.getOwnPropertyNames(humanMap),
-        
+
     // Collect all items that match
-        regexpArr = query.split(/\s+/),
+        queryParts = query.split(/\s+/),
+        queryPart,
+        hasUppercase,
+        regexpFlags,
+        regexpArr = [],
+        regexp,
         j,
         matches = [],
         matchesAll;
+
+    // Create the regexp items
+    for (i = 0, len = queryParts.length; i < len; i++) {
+      queryPart = queryParts[i];
+
+      // If the queryPart uses upper case, be case sensitive. Otherwise, don't.
+      hasUppercase = !!queryPart.match(/[A-Z]/),
+      regexpFlags = hasUppercase ? '' : 'i';
+      regexp = new RegExp(queryPart, regexpFlags)
+
+      // Generate the filter and push it onto the array
+      regexpArr.push(regexp);
+    }
+
+    // Iterate the names
     for (i = 0, len = humanNames.length; i < len; i++) {
       humanName = humanNames[i];
       matchesAll = true;
+
+      // Check each name against a regular expression
       for (j = regexpArr.length; j--;) {
-        if (humanName.indexOf(regexpArr[j]) === -1) {
+
+        // If it does not match, fail the loop
+        if (!humanName.match(regexpArr[j])) {
           matchesAll = false;
           break;
         }
       }
 
+      // If there were no failures
       if (matchesAll === true) {
+        // Push the match on the list
         matches.push(humanName);
       }
     }
-    
+
     // Return the matches
     return matches;
   },
@@ -107,7 +132,7 @@ FileFinder.prototype = {
         baseDir = this.baseDir,
         filename,
         humanName;
-        
+
     // Loop through the files
     for (i = 0, len = fullFilenames.length; i < len; i++) {
       // Get each filename sans base_dir
