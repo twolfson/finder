@@ -1,9 +1,6 @@
 var path = require('path'),
-    conf = require('./finder.conf.js'),
-    BASE_DIR = conf.baseDir || process.cwd(),
-    directories = conf.directories || {},
     fs = require('fs');
-
+    
 // Prep for recursive dive of the directories
 function getFilesFromDirectory(basePath, dirName, tree) {
   var dirPath = path.join(basePath, dirName),
@@ -40,35 +37,23 @@ function getFilesFromDirectory(basePath, dirName, tree) {
 
   return files;
 }
-
-// Recusively dive and collect all files
-var fullFilenames = getFilesFromDirectory(BASE_DIR, '.', directories),
-    i,
-    len,
-    humanToFullFilenameMap = {},
-    filename,
-    humanName;
-
-// Loop through the files
-for (i = 0, len = fullFilenames.length; i < len; i++) {
-  // Get each filename sans base_dir
-  filename = fullFilenames[i];
-  humanName = filename.replace(BASE_DIR, '');
-
-  // Add the file name to the map
-  humanToFullFilenameMap[humanName] = filename;
+    
+function FileFinder(conf) {
+  this.baseDir = conf.baseDir || process.cwd();
+  this.directories = conf.directories || {};
+  this.humanMap = {};
+  
+  // Scan for files
+  this.scan();
 }
-
-// Then, create an array of the keys (for quick looping)
-var humanNames = Object.keys(humanToFullFilenameMap),
-    rl = require('readline'),
-    iface = rl.createInterface(process.stdin, process.stdout, null);
-
-// Set up startSearch for calling later
-function startSearch() {
-  iface.question('Enter search: ', function (query) {
+FileFinder.prototype = {
+  'query': function (query) {
+    // Grab the keys for quick looping
+    var humanMap = this.humanMap,
+        humanNames = Object.getOwnPropertyNames(humanMap),
+        
     // Collect all items that match
-    var regexpArr = query.split(/\s+/),
+        regexpArr = query.split(/\s+/),
         j,
         matches = [];
     for (i = 0, len = humanNames.length; i < len; i++) {
@@ -85,9 +70,56 @@ function startSearch() {
         matches.push(humanName);
       }
     }
+    
+    // Return the matches
+    return matches;
+  },
+  'scan': function () {
+    var fullFilenames = this.scanFullFilenames();
+    this.mapFilenamesToHuman(fullFilenames);
+  },
+  'scanFullFilenames': function () {
+    var retArr = this.fullFilenames = getFilesFromDirectory(this.baseDir, '.', this.directories);
+    return retArr;
+  },
+  'mapFilenamesToHuman': function (fullFilenames) {
+    // Recusively dive and collect all files
+    var i,
+        len,
+        humanToFullFilenameMap = this.humanMap,
+        baseDir = this.baseDir,
+        filename,
+        humanName;
+        
+    // Loop through the files
+    for (i = 0, len = fullFilenames.length; i < len; i++) {
+      // Get each filename sans base_dir
+      filename = fullFilenames[i];
+      humanName = filename.replace(baseDir, '');
+
+      // Add the file name to the map
+      humanToFullFilenameMap[humanName] = filename;
+    }
+    
+    return this;
+  }
+};
+
+// Grab our config and create our fileFinder
+var conf = require('./finder.conf.js'),
+    fileFinder = new FileFinder(conf),
+// Generate the interface
+    rl = require('readline'),
+    iface = rl.createInterface(process.stdin, process.stdout, null);
+
+// Set up startSearch for calling later
+function startSearch() {
+  iface.question('Enter search: ', function (query) {
+    // Get the results of our query
+    var matches = fileFinder.query(query),
+        len = matches.length;
 
     // If no results were found
-    len = matches.length;
     if (len === 0) {
       console.log('No results found for: ' + query);
       startSearch();
@@ -102,13 +134,21 @@ function startSearch() {
         var num = +numStr,
             item;
 
-        // If the number is not NaN and is in our result set
-        if (numStr !== '' && num === num && num >= 0 && num < len) {
-          // Open it
-          item = matches[num];
-          console.log('Opening: ' + item);
-          var exec = require('child_process').exec;
-          exec('start ' + humanToFullFilenameMap[item], function () {});
+        // If the number is not NaN
+        if (num === num) {
+          // and if it is in our result set
+          if (numStr !== '' && num >= 0 && num < len) {
+            // Open it
+            item = matches[num];
+            console.log('Opening: ' + item);
+            var exec = require('child_process').exec;
+            exec('start ' + humanToFullFilenameMap[item], function () {});
+          }
+        } else {
+        // Otherwise, if there was a word in there so we are assuming it was 'rescan'
+          // Rescan
+          console.log('Rescanning...');
+          fileFinder.scan();
         }
 
         // Begin the search again
