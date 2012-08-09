@@ -1,5 +1,6 @@
 var path = require('path'),
-    fs = require('fs');
+    fs = require('fs'),
+    conf = require('./finder.conf.js');
 
 // Prep for recursive dive of the directories
 function getFilesFromDirectory(basePath, dirName, tree) {
@@ -60,7 +61,7 @@ function FileFinder(conf) {
 FileFinder.prototype = {
   'open': function (name) {
     var exec = require('child_process').exec;
-    exec('start ' + this.humanMap[name], function () {});
+    exec(conf.editor + ' ' + this.humanMap[name], function () {});
   },
   'query': function (query) {
     // Grab the keys for quick looping
@@ -85,7 +86,7 @@ FileFinder.prototype = {
       // If the queryPart uses upper case, be case sensitive. Otherwise, don't.
       hasUppercase = !!queryPart.match(/[A-Z]/),
       regexpFlags = hasUppercase ? '' : 'i';
-      regexp = new RegExp(queryPart, regexpFlags)
+      regexp = new RegExp(queryPart, regexpFlags);
 
       // Generate the filter and push it onto the array
       regexpArr.push(regexp);
@@ -117,6 +118,10 @@ FileFinder.prototype = {
     return matches;
   },
   'scan': function () {
+    // Erase the old memory
+    this.humanMap = {};
+
+    // Update the new memory
     var fullFilenames = this.scanFullFilenames();
     this.mapFilenamesToHuman(fullFilenames);
   },
@@ -148,8 +153,7 @@ FileFinder.prototype = {
 };
 
 // Grab our config and create our fileFinder
-var conf = require('./finder.conf.js'),
-    fileFinder = new FileFinder(conf),
+var fileFinder = new FileFinder(conf),
 // Generate the interface
     rl = require('readline'),
     iface = rl.createInterface(process.stdin, process.stdout, null);

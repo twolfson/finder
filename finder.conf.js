@@ -1,12 +1,13 @@
 var path = require('path'),
     BASE_DIR = path.join(process.cwd(), '..', 'Ensighten', 'repos', 'interface_new'),
     directories = {
+      // 'apps': true,
       'controllers': true,
       'data': true,
       'exports': true,
       'models': true,
       'node_modules': {
-        'api': true
+        'ensApiClient': true
       },
       'public': {
         'css': true,
@@ -18,5 +19,6 @@ var path = require('path'),
 
 module.exports = {
   'baseDir': BASE_DIR,
-  'directories': directories
+  'directories': directories,
+  'editor': 'notepad++'
 };
