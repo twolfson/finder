@@ -1,54 +1,7 @@
 var path = require('path'),
     fs = require('fs'),
+    glob = require('glob'),
     conf = require('./finder.conf.js');
-
-// Prep for recursive dive of the directories
-function getFilesFromDirectory(basePath, dirName, tree) {
-  var dirPath = path.join(basePath, dirName),
-      treeType = typeof tree,
-      files = [],
-      keys,
-      key,
-      i,
-      len,
-      currentPath,
-      pathStats;
-
-  // TODO: Use async lib and don't do sync
-  // If the tree is not a tree/object
-  if (treeType !== 'object') {
-    // and is a boolean
-    if (treeType === 'boolean') {
-      // TODO: Handle black listing? (via false)
-      if (tree === true) {
-        keys = fs.readdirSync(dirPath);
-
-        for (i = 0, len = keys.length; i < len; i++) {
-          key = keys[i];
-          currentPath = path.join(dirPath, key);
-          pathStats = fs.statSync(currentPath);
-
-          // If the item is a directory
-          if (pathStats.isDirectory()) {
-            files = files.concat(getFilesFromDirectory(dirPath, key, true));
-          } else {
-            // Otherwise push on the new item
-            files.push( currentPath );
-          }
-        }
-      }
-    }
-  } else {
-  // Otherwise, keep on diving in the tree
-    keys = Object.getOwnPropertyNames(tree);
-    for (i = 0, len = keys.length; i < len; i++) {
-      key = keys[i];
-      files = files.concat(getFilesFromDirectory(dirPath, key, tree[key]));
-    }
-  }
-
-  return files;
-}
 
 function FileFinder(conf) {
   this.baseDir = conf.baseDir || process.cwd();
@@ -126,7 +79,16 @@ FileFinder.prototype = {
     this.mapFilenamesToHuman(fullFilenames);
   },
   'scanFullFilenames': function () {
-    var retArr = this.fullFilenames = getFilesFromDirectory(this.baseDir, '.', this.directories);
+    var retArr = [],
+        dirs = this.directories,
+        baseDir = this.baseDir;
+        
+    dirs.forEach(function (dir) {
+      var files = glob.sync(dir, {cwd: baseDir});
+      retArr = retArr.concat(files);
+    });
+    
+    this.fullFilenames = retArr;
     return retArr;
   },
   'mapFilenamesToHuman': function (fullFilenames) {

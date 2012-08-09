@@ -1,21 +1,27 @@
 var path = require('path'),
     BASE_DIR = path.join(process.cwd(), '..', 'Ensighten', 'repos', 'interface_new'),
-    directories = {
+    directories = [
+      // Base files
+      '*.js',
+      '*.json',
+      '*.md',
+      '.gitignore',
+      '.nodemonignore',
+
       // 'apps': true,
-      'controllers': true,
-      'data': true,
-      'exports': true,
-      'models': true,
-      'node_modules': {
-        'ensApiClient': true
-      },
-      'public': {
-        'css': true,
-        'js': true
-      },
-      'routes': true,
-      'views': true
-    };
+      'controllers/**',
+      'data/**',
+      // 'exports': true,
+      'pages/**',
+      'models/**',
+      'node_modules/ensApiClient/**',
+      'public/css/**',
+      'public/js/**',
+      'routes/**',
+      'scripts/**',
+      'utils/**',
+      'views/**'
+    ];
 
 module.exports = {
   'baseDir': BASE_DIR,
