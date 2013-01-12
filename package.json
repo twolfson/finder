@@ -1,7 +1,7 @@
 {
   "author": "Todd Wolfson <todd@twolfson.com>",
   "name": "finder",
-  "description": "CLI for finding files in a project",
+  "description": "Quick and dirty cross-platform CLI tool for searching for files to open with favorite editor.",
   "version": "0.0.1",
   "main": "finder.js",
   "dependencies": {
@@ -11,6 +11,5 @@
   "optionalDependencies": {},
   "engines": {
     "node": "*"
-  },
-  "private": true
+  }
 }
