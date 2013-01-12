@@ -56,3 +56,8 @@ On other platforms, I began using [Sublime Text 2][subl]'s `Find in project` fun
 If you know how to set it up, please submit a pull request with instructions.
 
 [subl]: http://www.sublimetext.com/2
+
+License
+-------
+Copyright (c) 2013 Todd Wolfson
+Licensed under the MIT license.
