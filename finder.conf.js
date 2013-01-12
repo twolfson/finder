@@ -1,5 +1,5 @@
 var path = require('path'),
-    BASE_DIR = path.join(__dirname + '/../dir/I/want/to/search'),
+    BASE_DIR = path.join(__dirname, '../dir/I/want/to/search'),
     directories = [
       '*.js',
       '*.json',
