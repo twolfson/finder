@@ -13,8 +13,12 @@ function FileFinder(conf) {
 }
 FileFinder.prototype = {
   'open': function (name) {
-    var exec = require('child_process').exec;
-    exec(conf.editor + ' ' + this.humanMap[name], function () {});
+    var exec = require('child_process').exec,
+        file = this.humanMap[name],
+        dir = this.baseDir,
+        filepath = path.join(dir, '/', file);
+
+    exec(conf.editor + ' ' + filepath, function () {});
   },
   'query': function (query) {
     // Grab the keys for quick looping

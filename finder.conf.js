@@ -1,26 +1,12 @@
 var path = require('path'),
-    BASE_DIR = path.join(process.cwd(), '..', 'Ensighten', 'repos', 'interface_new'),
+    BASE_DIR = path.join(__dirname + '/../dir/I/want/to/search'),
     directories = [
-      // Base files
       '*.js',
       '*.json',
       '*.md',
       '.gitignore',
       '.nodemonignore',
-
-      // 'apps': true,
-      'controllers/**',
-      'data/**',
-      // 'exports': true,
-      'pages/**',
-      'models/**',
-      'node_modules/ensApiClient/**',
-      'public/css/**',
-      'public/js/**',
-      'routes/**',
-      'scripts/**',
-      'utils/**',
-      'views/**'
+      'any.minimatch.pattern/**/*.js'
     ];
 
 module.exports = {
